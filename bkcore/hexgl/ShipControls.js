@@ -169,6 +169,17 @@ bkcore.hexgl.ShipControls = function(ctx)
           self.key.right = controller.lstickx > 0.1;
       });
 	}
+	else if (ctx.controlType == 5 && bkcore.controllers.GeekBikeController.isCompatible())
+	{
+		console.log('Control with Geek Bike.');
+		this.geekBikeController = new bkcore.controllers.geekBikeController(
+			function(controller) {
+				self.key.forward = controller.acceleration > 0;
+				self.key.left = controller.turning < -0.1;
+				self.key.right = controller.turning > 0.1;
+			}
+		);
+	}
 	else if(ctx.controlType == 2)
 	{
 		if(Leap == null)

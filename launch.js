@@ -26,11 +26,27 @@
     progressbar = $('progressbar');
     return hexGL.load({
       onLoad: function() {
+        var socket, stompClient;
         console.log('LOADED.');
         hexGL.init();
         $('step-3').style.display = 'none';
         $('step-4').style.display = 'block';
-        return hexGL.start();
+        socket = new SockJS('ws://localhost:3000/geekbike', null, {
+          debug: true
+        });
+        stompClient = Stomp.over(socket);
+        return stompClient.connect({}, function(frame) {
+          console.log("Connected: " + frame);
+          stompClient.subscribe('/ws/acc', function(message) {
+            console.log("Acc: " + message);
+            return window[message] = true;
+          });
+          stompClient.subscribe('/ws/yaw', function(message) {
+            console.log("Yaw: " + message);
+            return window[message] = true;
+          });
+          return hexGL.start();
+        });
       },
       onError: function(s) {
         return console.error("Error loading " + s + ".");
@@ -46,7 +62,7 @@
 
   defaultControls = bkcore.Utils.isTouchDevice() ? 1 : 0;
 
-  s = [['controlType', ['KEYBOARD', 'TOUCH', 'LEAP MOTION CONTROLLER', 'GAMEPAD'], defaultControls, defaultControls, 'Controls: '], ['quality', ['LOW', 'MID', 'HIGH', 'VERY HIGH'], 3, 3, 'Quality: '], ['hud', ['OFF', 'ON'], 1, 1, 'HUD: '], ['godmode', ['OFF', 'ON'], 0, 1, 'Godmode: ']];
+  s = [['controlType', ['KEYBOARD', 'TOUCH', 'LEAP MOTION CONTROLLER', 'GAMEPAD', 'ORIENTATION', 'GEEK BIKE'], defaultControls, defaultControls, 'Controls: '], ['quality', ['LOW', 'MID', 'HIGH', 'VERY HIGH'], 3, 3, 'Quality: '], ['hud', ['OFF', 'ON'], 1, 1, 'HUD: '], ['godmode', ['OFF', 'ON'], 0, 1, 'Godmode: ']];
 
   _fn = function(a) {
     var e, f, _ref;

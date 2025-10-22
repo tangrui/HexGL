@@ -24,7 +24,25 @@ init = (controlType, quality, hud, godmode) ->
       hexGL.init()
       $('step-3').style.display = 'none'
       $('step-4').style.display = 'block'
-      hexGL.start()
+      # Init websocket here then call hexGL.start() in the callback.
+      options = {
+        debug: true
+      }
+      socket = new SockJS('/geekbike', null, options)
+      stompClient = Stomp.over(socket)
+      #stompClient.debug = null
+      stompClient.connect({}, (frame) ->
+        console.log "Connected: #{frame}"
+        stompClient.subscribe '/ws/acc', (message) ->
+          console.log "Acc: #{message}"
+          window[message] = true
+        stompClient.subscribe '/ws/yaw', (message) ->
+          console.log "Yaw: #{message}"
+          window[message] = true
+        window.stompClient = stompClient
+        hexGL.start()
+      )
+      # hexGL.start()
     onError: (s) ->
       console.error "Error loading #{ s }."
     onProgress: (p, t, n) ->
@@ -38,7 +56,7 @@ defaultControls = if bkcore.Utils.isTouchDevice() then 1 else 0
 
 s = [
   ['controlType', ['KEYBOARD', 'TOUCH', 'LEAP MOTION CONTROLLER',
-    'GAMEPAD'], defaultControls, defaultControls, 'Controls: ']
+    'GAMEPAD', 'ORIENTATION', 'GEEK BIKE'], defaultControls, defaultControls, 'Controls: ']
   ['quality', ['LOW', 'MID', 'HIGH', 'VERY HIGH'], 3, 3, 'Quality: ']
   ['hud', ['OFF', 'ON'], 1, 1, 'HUD: ']
   ['godmode', ['OFF', 'ON'], 0, 1, 'Godmode: ']
